@@ -1,0 +1,15 @@
+{
+  "bounds": {
+    "west": 120.945,
+    "south": 14.58,
+    "east": 121.175,
+    "north": 14.785
+  },
+  "cols": 4600,
+  "rows": 4100,
+  "cellDeg": 5e-05,
+  "step": 0.01,
+  "dtype": "uint16-le",
+  "dataFile": "qc_flood.bin",
+  "encoding": "uint16 LE - value x 0.01 = depth_metres; 0 = no flood"
+}

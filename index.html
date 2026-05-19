@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>BAHAR — Quezon City Flood AR</title>
+  <link rel="stylesheet" href="css/style-ios.css">
+</head>
+<body>
+
+  <!-- ── Landing Screen ─────────────────────────────────────────────── -->
+  <div id="screen-landing">
+    <img src="NOAH LOGO.png" alt="Project NOAH" id="noah-logo-landing">
+    <div class="logo-wrap">
+      <div class="logo-text">BAHAR</div>
+      <div class="logo-sub">Baha Augmented Reality</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quezon City · 100-Year Flood</div>
+      <p class="card-desc">
+        Point your camera at the ground to see accurate flood depth across
+        all of Quezon City, from Project NOAH's 100-year return period model.
+      </p>
+    </div>
+
+    <div id="status-msg" class="status">Checking WebXR support…</div>
+
+    <button id="btn-start" class="btn-primary" disabled>
+      Start AR
+    </button>
+
+    <div class="disclaimer">
+      Use iOS Safari or Android Chrome.<br>
+      Allow camera &amp; location access when prompted.
+    </div>
+  </div>
+
+  <!-- ── AR DOM Overlay (shown during AR session) ───────────────────── -->
+  <div id="ar-overlay">
+
+    <div id="depth-card">
+      <div id="depth-badge" class="badge-none">NO FLOOD</div>
+      <div id="depth-row">
+        <span id="depth-value">--</span>
+        <span id="depth-unit">m</span>
+      </div>
+      <div id="depth-label">flood depth at your location</div>
+      <div id="water-level-label" class="hidden"></div>
+      <div id="elevation-row" class="hidden">
+        <span id="elevation-icon">▲</span>
+        <span id="elevation-value">--</span>
+        <span id="elevation-unit">m elev.</span>
+        <span id="elevation-accuracy"></span>
+      </div>
+    </div>
+
+    <div id="gps-bar">
+      <span id="gps-icon">📡</span>
+      <span id="gps-text">Waiting for GPS…</span>
+      <span id="elev-bar" class="hidden">
+        <span class="elev-sep">|</span>
+        <span id="elev-bar-icon">▲</span>
+        <span id="elev-bar-value">--</span>
+        <span class="elev-bar-unit">m</span>
+      </span>
+    </div>
+
+    <div id="scan-hint" class="hint">Point camera at the ground to detect floor</div>
+
+    <button id="btn-exit" class="btn-exit">✕ Exit</button>
+
+    <!-- NOAH watermark during AR -->
+    <img src="NOAH LOGO.png" alt="Project NOAH" id="noah-logo-ar">
+
+  </div>
+
+  <!-- Camera feed background for iOS AR mode -->
+  <video id="camera-feed" playsinline autoplay muted></video>
+
+  <!-- Flood filter overlay — rises with depth, simulates being in floodwater -->
+  <div id="flood-filter"></div>
+
+  <!-- Three.js canvas (hidden until AR starts) -->
+  <canvas id="ar-canvas"></canvas>
+
+  <script type="module" src="js/app-ios.js"></script>
+</body>
+</html>
