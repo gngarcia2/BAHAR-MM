@@ -37,41 +37,32 @@ let gpsWatchId   = null;
 let currentDepth = 0;
 let currentHazard = 'none';
 
-/* ── Terrain elevation cache ───────────────────────────────────────────────── */
-let _terrainElev    = null;
-let _terrainLatLon  = null;
+/* ── Terrain elevation grid (local, no API) ────────────────────────────────── */
+let _terrainGrid   = null;
+let _terrainHeader = null;
 
-async function getTerrainElevation(lat, lon) {
-  if (_terrainLatLon) {
-    const dlat = lat - _terrainLatLon.lat;
-    const dlon = lon - _terrainLatLon.lon;
-    if (Math.sqrt(dlat * dlat + dlon * dlon) < 0.005) return _terrainElev; // ~500 m cache
+async function loadTerrainGrid() {
+  try {
+    const [hRes, bRes] = await Promise.all([
+      fetch('./qc_terrain_header.json'),
+      fetch('./qc_terrain.bin'),
+    ]);
+    _terrainHeader = await hRes.json();
+    _terrainGrid   = new Uint8Array(await bRes.arrayBuffer());
+    console.log(`[BAHAR] Terrain grid loaded (${_terrainGrid.length} cells)`);
+  } catch (e) {
+    console.warn('[BAHAR] Terrain grid unavailable:', e.message);
   }
+}
 
-  const coords = `${lat.toFixed(5)},${lon.toFixed(5)}`;
-  const apis = [
-    `https://api.opentopodata.org/v1/srtm30m?locations=${coords}`,
-    `https://api.open-elevation.com/api/v1/lookup?locations=${coords}`,
-  ];
-
-  for (const url of apis) {
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 5000);
-      const res  = await fetch(url, { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const elev = data?.results?.[0]?.elevation;
-      if (elev != null) {
-        _terrainElev   = elev;
-        _terrainLatLon = { lat, lon };
-        console.log(`[BAHAR] Terrain: ${elev.toFixed(1)} m (${url.includes('opentopodata') ? 'OpenTopo' : 'OpenElev'})`);
-        return _terrainElev;
-      }
-    } catch { /* try next */ }
-  }
-  return _terrainElev; // stale cache or null
+function getTerrainElevation(lat, lon) {
+  if (!_terrainGrid || !_terrainHeader) return null;
+  const { bounds, cols, rows, cellDeg } = _terrainHeader;
+  const col = Math.floor((lon - bounds.west)  / cellDeg);
+  const row = Math.floor((bounds.north - lat) / cellDeg);
+  if (col < 0 || col >= cols || row < 0 || row >= rows) return null;
+  const val = _terrainGrid[row * cols + col];
+  return val;
 }
 
 /* ── Platform detection ────────────────────────────────────────────────────── */
@@ -85,7 +76,10 @@ async function boot() {
   setStatus('Loading flood data…');
 
   try {
-    await flood.load('./qc_flood_header.json');
+    await Promise.all([
+      flood.load('./qc_flood_header.json'),
+      loadTerrainGrid(),
+    ]);
   } catch (e) {
     setStatus('Could not load flood data. Check console.', 'err');
     console.error(e);
@@ -253,7 +247,7 @@ async function onPosition(pos) {
 
   const altAvailable = altitude !== null && altitude !== undefined;
   if (altAvailable && modelDepth > 0) {
-    const terrainElev = await getTerrainElevation(lat, lon);
+    const terrainElev = getTerrainElevation(lat, lon);
     if (terrainElev !== null) {
       const waterSurface = terrainElev + modelDepth;
       depth = Math.max(0, waterSurface - altitude);
@@ -263,8 +257,6 @@ async function onPosition(pos) {
         `  userAlt=${altitude.toFixed(1)}m  acc=±${altitudeAccuracy ?? '?'}m  effective=${depth.toFixed(2)}m`
       );
     }
-    // If terrain API unavailable, fall back to raw model depth — better to show
-    // flood on a high floor than suppress flood for a ground-floor user on high terrain.
   }
 
   currentDepth  = depth;

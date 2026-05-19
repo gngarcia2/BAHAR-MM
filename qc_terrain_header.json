@@ -1,0 +1,14 @@
+{
+  "bounds": {
+    "west": 120.945,
+    "south": 14.58,
+    "east": 121.175,
+    "north": 14.785
+  },
+  "cols": 115,
+  "rows": 103,
+  "cellDeg": 0.002,
+  "dtype": "uint8",
+  "dataFile": "qc_terrain.bin",
+  "encoding": "uint8 \u2014 value = terrain elevation in metres above sea level"
+}
