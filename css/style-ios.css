@@ -396,7 +396,7 @@ body.submerged::after {
 
 #ar-fineprint {
   position: absolute;
-  bottom: 78px;
+  bottom: 130px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.55rem;
@@ -404,7 +404,7 @@ body.submerged::after {
   line-height: 1.4;
   font-style: italic;
   text-align: center;
-  width: 280px;
+  width: 260px;
   pointer-events: none;
 }
 
