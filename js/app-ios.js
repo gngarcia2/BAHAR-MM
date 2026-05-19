@@ -191,17 +191,21 @@ async function onPosition(pos) {
     return;
   }
 
-  currentDepth  = modelDepth;
-  currentHazard = flood.hazardLevel(modelDepth);
+  // Depths below 0.10 m are below NOAH's minimum low-hazard threshold and
+  // do not appear on NOAH's visual flood maps — treat as no flood.
+  const depth = modelDepth >= 0.10 ? modelDepth : 0;
 
-  elDepthVal.textContent   = modelDepth > 0 ? modelDepth.toFixed(2) : '0.00';
-  elDepthBadge.textContent = flood.hazardLabel(modelDepth);
+  currentDepth  = depth;
+  currentHazard = flood.hazardLevel(depth);
+
+  elDepthVal.textContent   = depth > 0 ? depth.toFixed(2) : '0.00';
+  elDepthBadge.textContent = flood.hazardLabel(depth);
   elDepthBadge.className   = `badge-${currentHazard}`;
 
-  renderer.setFlood(modelDepth, currentHazard);
+  renderer.setFlood(depth, currentHazard);
 
-  if (modelDepth > 0) {
-    const pct = Math.min((modelDepth / 1.6) * 72, 88);
+  if (depth > 0) {
+    const pct = Math.min((depth / 1.6) * 72, 88);
     elFloodFilter.classList.add('active');
     elFloodFilter.style.height = pct.toFixed(1) + '%';
   } else {
@@ -209,10 +213,10 @@ async function onPosition(pos) {
     elFloodFilter.style.height = '0%';
   }
 
-  elWaterLevel.textContent = waterLevelLabel(modelDepth);
-  elWaterLevel.classList.toggle('hidden', modelDepth <= 0);
+  elWaterLevel.textContent = waterLevelLabel(depth);
+  elWaterLevel.classList.toggle('hidden', depth <= 0);
 
-  document.body.classList.toggle('submerged', modelDepth >= 1.7);
+  document.body.classList.toggle('submerged', depth >= 1.7);
 }
 
 function onGPSError(err) {
