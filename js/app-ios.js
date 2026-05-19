@@ -37,33 +37,6 @@ let gpsWatchId   = null;
 let currentDepth = 0;
 let currentHazard = 'none';
 
-/* ── Terrain elevation grid (local, no API) ────────────────────────────────── */
-let _terrainGrid   = null;
-let _terrainHeader = null;
-
-async function loadTerrainGrid() {
-  try {
-    const [hRes, bRes] = await Promise.all([
-      fetch('./qc_terrain_header.json'),
-      fetch('./qc_terrain.bin'),
-    ]);
-    _terrainHeader = await hRes.json();
-    _terrainGrid   = new Uint8Array(await bRes.arrayBuffer());
-    console.log(`[BAHAR] Terrain grid loaded (${_terrainGrid.length} cells)`);
-  } catch (e) {
-    console.warn('[BAHAR] Terrain grid unavailable:', e.message);
-  }
-}
-
-function getTerrainElevation(lat, lon) {
-  if (!_terrainGrid || !_terrainHeader) return null;
-  const { bounds, cols, rows, cellDeg } = _terrainHeader;
-  const col = Math.floor((lon - bounds.west)  / cellDeg);
-  const row = Math.floor((bounds.north - lat) / cellDeg);
-  if (col < 0 || col >= cols || row < 0 || row >= rows) return null;
-  const val = _terrainGrid[row * cols + col];
-  return val;
-}
 
 /* ── Platform detection ────────────────────────────────────────────────────── */
 function isIOS() {
@@ -76,10 +49,7 @@ async function boot() {
   setStatus('Loading flood data…');
 
   try {
-    await Promise.all([
-      flood.load('./qc_flood_header.json'),
-      loadTerrainGrid(),
-    ]);
+    await flood.load('./qc_flood_header.json');
   } catch (e) {
     setStatus('Could not load flood data. Check console.', 'err');
     console.error(e);
@@ -233,46 +203,17 @@ async function onPosition(pos) {
     return;
   }
 
-  /* ── Elevation correction ──────────────────────────────────────────────────
-     The flood model gives depth above the terrain surface (ground level).
-     If the user is elevated (e.g. 2nd floor, elevated walkway), their GPS
-     altitude will be above the water surface, so effective depth is less.
+  currentDepth  = modelDepth;
+  currentHazard = flood.hazardLevel(modelDepth);
 
-     Formula:
-       waterSurfaceElev = terrainElev + modelDepth
-       effectiveDepth   = waterSurfaceElev − userAltitude
-
-     If effectiveDepth ≤ 0 the user is above the water — show no flood.
-     Falls back to modelDepth when altitude or terrain data is unavailable.
-  ──────────────────────────────────────────────────────────────────────────── */
-  let depth = modelDepth;
-  let aboveWater = false;
-
-  const altAvailable = altitude !== null && altitude !== undefined;
-  if (altAvailable && modelDepth > 0) {
-    const terrainElev = getTerrainElevation(lat, lon);
-    if (terrainElev !== null) {
-      const waterSurface = terrainElev + modelDepth;
-      depth = Math.max(0, waterSurface - altitude);
-      if (depth === 0) aboveWater = true;
-      console.log(
-        `[BAHAR] terrain=${terrainElev.toFixed(1)}m  model=${modelDepth.toFixed(2)}m` +
-        `  userAlt=${altitude.toFixed(1)}m  acc=±${altitudeAccuracy ?? '?'}m  effective=${depth.toFixed(2)}m`
-      );
-    }
-  }
-
-  currentDepth  = depth;
-  currentHazard = flood.hazardLevel(depth);
-
-  elDepthVal.textContent   = depth > 0 ? depth.toFixed(2) : '0.00';
-  elDepthBadge.textContent = aboveWater ? 'NO FLOOD — ELEVATED AREA' : flood.hazardLabel(depth);
+  elDepthVal.textContent   = modelDepth > 0 ? modelDepth.toFixed(2) : '0.00';
+  elDepthBadge.textContent = flood.hazardLabel(modelDepth);
   elDepthBadge.className   = `badge-${currentHazard}`;
 
-  renderer.setFlood(depth, currentHazard);
+  renderer.setFlood(modelDepth, currentHazard);
 
-  if (depth > 0) {
-    const pct = Math.min((depth / 1.6) * 72, 88);
+  if (modelDepth > 0) {
+    const pct = Math.min((modelDepth / 1.6) * 72, 88);
     elFloodFilter.classList.add('active');
     elFloodFilter.style.height = pct.toFixed(1) + '%';
   } else {
@@ -280,10 +221,10 @@ async function onPosition(pos) {
     elFloodFilter.style.height = '0%';
   }
 
-  elWaterLevel.textContent = waterLevelLabel(depth);
-  elWaterLevel.classList.toggle('hidden', depth <= 0);
+  elWaterLevel.textContent = waterLevelLabel(modelDepth);
+  elWaterLevel.classList.toggle('hidden', modelDepth <= 0);
 
-  document.body.classList.toggle('submerged', depth >= 1.7);
+  document.body.classList.toggle('submerged', modelDepth >= 1.7);
 }
 
 function onGPSError(err) {
