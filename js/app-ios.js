@@ -246,12 +246,8 @@ async function onPosition(pos) {
   let depth = modelDepth;
   let aboveWater = false;
 
-  // Elevation correction: suppress flood the user is physically above.
-  // Gate on altitude accuracy — null means device doesn't report it (trust it); > 25 m is too noisy.
-  // Terrain elevation is fetched here even when depth=0, so the cache is warm before entering a flood zone.
   const altAvailable = altitude !== null && altitude !== undefined;
-  const altReliable  = altAvailable && (altitudeAccuracy === null || altitudeAccuracy < 25);
-  if (altReliable) {
+  if (altAvailable) {
     const terrainElev = await getTerrainElevation(lat, lon);
     if (terrainElev !== null && modelDepth > 0) {
       const waterSurface = terrainElev + modelDepth;
