@@ -188,10 +188,10 @@ void waterSurface(realitykit::surface_parameters params)
     half3 brightened = clamp(refraction + waterTint * half(0.10), half3(0.0), half3(1.0));
     half3 tintedRefraction = mix(refraction, brightened, half(0.30));
 
-    // Reflection dominates across the whole surface — high floor (+0.30) so
-    // even straight-down areas show clear scene reflection, and full Fresnel
-    // weight at glancing angles for that strong mirror feel.
-    half reflectStrength = half(saturate(fresnel * 0.95 + 0.30));
+    // Reflection dominates the look — high floor (+0.50) so the water reads
+    // as mirror-like across the entire surface, and full Fresnel weight at
+    // glancing angles pushes nearly pure reflection at the horizon.
+    half reflectStrength = half(saturate(fresnel * 1.00 + 0.50));
     half3 finalColor = mix(tintedRefraction, reflection, reflectStrength);
 
     // Subtle sky sparkle.
