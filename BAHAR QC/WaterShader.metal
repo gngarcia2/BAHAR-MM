@@ -188,9 +188,10 @@ void waterSurface(realitykit::surface_parameters params)
     half3 brightened = clamp(refraction + waterTint * half(0.10), half3(0.0), half3(1.0));
     half3 tintedRefraction = mix(refraction, brightened, half(0.30));
 
-    // Reflection contributes substantially across the whole surface, not just
-    // at the horizon — this is what makes the water look wet and mirror-like.
-    half reflectStrength = half(saturate(fresnel * 0.85 + 0.15));
+    // Reflection dominates across the whole surface — high floor (+0.30) so
+    // even straight-down areas show clear scene reflection, and full Fresnel
+    // weight at glancing angles for that strong mirror feel.
+    half reflectStrength = half(saturate(fresnel * 0.95 + 0.30));
     half3 finalColor = mix(tintedRefraction, reflection, reflectStrength);
 
     // Subtle sky sparkle.
@@ -203,8 +204,8 @@ void waterSurface(realitykit::surface_parameters params)
     params.surface().set_normal(rippleNormal);
     params.surface().set_roughness(half(0.03));
     params.surface().set_metallic(half(0.0));
-    // Mostly opaque — the surface should read as a real wet/reflective layer
-    // sitting over the scene rather than a colour film over it. Underwater
-    // content shows through via the refraction sample, not via alpha-blend.
-    params.surface().set_opacity(half(0.85) * half(edgeAlpha));
+    // More transparent — refraction handles the underwater view, and the
+    // alpha-blend with the camera background lets the scene show through
+    // beneath the reflective film. Reads as cleaner, clearer water.
+    params.surface().set_opacity(half(0.62) * half(edgeAlpha));
 }
