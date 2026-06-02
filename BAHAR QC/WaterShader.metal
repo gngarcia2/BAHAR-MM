@@ -143,8 +143,8 @@ void waterSurface(realitykit::surface_parameters params)
     // The big UV-warp coefficient is the main "distortion" dial — large values
     // give the heavy wobble you see when looking through real shallow water.
     // Chromatic aberration retained but small; the dominant effect is the warp.
-    float2 refractBase = screenUv + float2(dHdx, dHdz) * 0.090;
-    float2 ca = float2(dHdx, dHdz) * 0.010;
+    float2 refractBase = screenUv + float2(dHdx, dHdz) * 0.130;
+    float2 ca = float2(dHdx, dHdz) * 0.014;
     float2 uvR = clamp(refractBase + ca, 0.001, 0.999);
     float2 uvG = clamp(refractBase,      0.001, 0.999);
     float2 uvB = clamp(refractBase - ca, 0.001, 0.999);
