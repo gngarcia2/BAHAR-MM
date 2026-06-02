@@ -2,9 +2,15 @@
 //  FloodData.swift
 //  BAHAR QC
 //
-//  Swift port of the JS FloodData loader. Reads a uint16-LE binary grid plus
-//  its JSON header and answers depth-at-coordinate queries with bilinear
-//  interpolation, matching the prototype's behaviour.
+//  Mapbox Tilequery-backed flood depth lookup. Mirrors the JS version
+//  (js/flood-data-ios.js): hits the Netlify-proxied tilequery endpoint for
+//  the `upri-noah.mm_fh_100yr_tls` tileset and caches results on a ~55 m grid
+//  so GPS pings don't hammer the API.
+//
+//  depth(latitude:longitude:) →
+//    nil  = outside Metro Manila coverage
+//    0    = inside coverage, no flood polygon at this point
+//    >0   = flood depth in metres (the `Var` property from the tileset)
 //
 
 import Foundation
@@ -55,101 +61,108 @@ nonisolated struct MMDAGauge: Equatable, Sendable {
     }
 }
 
-nonisolated struct FloodHeader: Decodable, Sendable {
-    nonisolated struct Bounds: Decodable, Sendable {
-        let west: Double
-        let south: Double
-        let east: Double
-        let north: Double
-    }
-    let bounds: Bounds
-    let cols: Int
-    let rows: Int
-    let cellDeg: Double
-    let step: Double
-    let dataFile: String
-}
-
 actor FloodData {
-    private var header: FloodHeader?
-    private var binData: Data = Data()
+    /// Netlify-proxied tilequery endpoint. Same one the web client uses; the
+    /// Mapbox token lives server-side in `netlify/functions/tilequery.js`.
+    private static let endpoint = URL(string: "https://bahar-mm.netlify.app/api/tilequery")!
 
-    var isReady: Bool { header != nil }
-
-    func load(headerName: String = "qc_flood_header", binaryName: String = "qc_flood") throws {
-        guard let headerURL = Bundle.main.url(forResource: headerName, withExtension: "json") else {
-            throw LoadError.missingResource(headerName + ".json")
-        }
-        let headerData = try Data(contentsOf: headerURL)
-        let hdr = try JSONDecoder().decode(FloodHeader.self, from: headerData)
-
-        guard let binURL = Bundle.main.url(forResource: binaryName, withExtension: "bin") else {
-            throw LoadError.missingResource(hdr.dataFile)
-        }
-        // Memory-map the 38 MB grid instead of copying it into an array — load
-        // is now near-instant and uses zero extra heap.
-        let data = try Data(contentsOf: binURL, options: .mappedIfSafe)
-        let expected = hdr.cols * hdr.rows * MemoryLayout<UInt16>.size
-        guard data.count >= expected else {
-            throw LoadError.shortRead(have: data.count, want: expected)
-        }
-
-        self.header = hdr
-        self.binData = data
+    /// Metro Manila bounding box — anything outside returns nil so the AR
+    /// shows nothing rather than a meaningless 0.
+    private enum Bounds {
+        static let north = 14.82
+        static let south = 14.35
+        static let west  = 120.90
+        static let east  = 121.20
     }
+
+    /// In-memory cache keyed by quantized lat/lon (~55 m grid).
+    private var cache: [String: Double] = [:]
+
+    var isReady: Bool { true }
+
+    /// No-op. Tilequery has nothing to preload — kept for API parity with the
+    /// old bundled-binary loader so callers don't have to change.
+    func load() async throws {}
 
     /// Returns flood depth in metres at the given WGS-84 coordinate.
-    /// `nil` = outside the data extent, 0 = inside extent / no flood modelled.
-    func depth(latitude lat: Double, longitude lon: Double) -> Double? {
-        guard let hdr = header else { return nil }
-        let b = hdr.bounds
-        guard lon >= b.west, lon <= b.east, lat >= b.south, lat <= b.north else { return nil }
+    func depth(latitude lat: Double, longitude lon: Double) async -> Double? {
+        guard lat >= Bounds.south, lat <= Bounds.north,
+              lon >= Bounds.west,  lon <= Bounds.east else { return nil }
 
-        let fc = (lon - b.west)  / hdr.cellDeg
-        let fr = (b.north - lat) / hdr.cellDeg
+        let key = cacheKey(lat: lat, lon: lon)
+        if let cached = cache[key] { return cached }
 
-        let col0 = min(Int(fc.rounded(.down)), hdr.cols - 1)
-        let row0 = min(Int(fr.rounded(.down)), hdr.rows - 1)
-        let fx = fc - Double(col0)
-        let fy = fr - Double(row0)
+        var comps = URLComponents(url: Self.endpoint, resolvingAgainstBaseURL: false)!
+        comps.queryItems = [
+            URLQueryItem(name: "lat", value: "\(lat)"),
+            URLQueryItem(name: "lon", value: "\(lon)"),
+        ]
+        guard let url = comps.url else { return cache[key] ?? 0 }
 
-        let q00 = cell(row: row0, col: col0, hdr: hdr)
-        if q00 == 0 { return 0 }
+        var request = URLRequest(url: url)
+        // Short timeout — AR queries should fail fast, not hang the depth UI.
+        request.timeoutInterval = 5.0
 
-        let q10 = cell(row: row0,     col: col0 + 1, hdr: hdr)
-        let q01 = cell(row: row0 + 1, col: col0,     hdr: hdr)
-        let q11 = cell(row: row0 + 1, col: col0 + 1, hdr: hdr)
-
-        let q = (1 - fy) * ((1 - fx) * Double(q00) + fx * Double(q10))
-              +      fy  * ((1 - fx) * Double(q01) + fx * Double(q11))
-        guard q > 0 else { return 0 }
-        return (q * hdr.step * 100).rounded() / 100
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                // Don't cache failures — caller may retry on next GPS tick.
+                return cache[key] ?? 0
+            }
+            let decoded = try JSONDecoder().decode(TilequeryResponse.self, from: data)
+            // Max depth across overlapping polygons, matching the JS loader.
+            var maxDepth: Double = 0
+            for feature in decoded.features {
+                if let v = feature.properties.varValue, v > maxDepth {
+                    maxDepth = v
+                }
+            }
+            cache[key] = maxDepth
+            return maxDepth
+        } catch {
+            return cache[key] ?? 0
+        }
     }
 
     func gauge(for depth: Double) -> MMDAGauge {
         MMDAGauge.from(depthMeters: depth)
     }
 
-    private func cell(row: Int, col: Int, hdr: FloodHeader) -> UInt16 {
-        guard row >= 0, row < hdr.rows, col >= 0, col < hdr.cols else { return 0 }
-        let offset = (row * hdr.cols + col) * MemoryLayout<UInt16>.size
-        return binData.withUnsafeBytes { raw -> UInt16 in
-            let ptr = raw.baseAddress!.advanced(by: offset)
-                .assumingMemoryBound(to: UInt16.self)
-            return UInt16(littleEndian: ptr.pointee)
-        }
+    /// Quantize to ~55 m (0.0005°) so multiple GPS pings near the same spot
+    /// share one cached answer. Identical key shape to the JS cache.
+    private func cacheKey(lat: Double, lon: Double) -> String {
+        let qLat = Int((lat * 2000).rounded())
+        let qLon = Int((lon * 2000).rounded())
+        return "\(qLat),\(qLon)"
+    }
+}
+
+// MARK: - Tilequery response decoding
+
+private struct TilequeryResponse: Decodable {
+    let features: [Feature]
+
+    struct Feature: Decodable {
+        let properties: Properties
     }
 
-    enum LoadError: Error, LocalizedError {
-        case missingResource(String)
-        case shortRead(have: Int, want: Int)
+    struct Properties: Decodable {
+        /// The tileset stores depth-in-metres under the property name `Var`.
+        /// Some tilesets emit it as a JSON number, others as a string —
+        /// accept both rather than fail.
+        let varValue: Double?
 
-        var errorDescription: String? {
-            switch self {
-            case .missingResource(let name):
-                return "Flood data resource \(name) not found in app bundle."
-            case .shortRead(let have, let want):
-                return "Flood binary truncated: \(have) bytes, expected \(want)."
+        private enum CodingKeys: String, CodingKey { case Var }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            if let d = try? c.decode(Double.self, forKey: .Var) {
+                varValue = d
+            } else if let s = try? c.decode(String.self, forKey: .Var),
+                      let d = Double(s) {
+                varValue = d
+            } else {
+                varValue = nil
             }
         }
     }
