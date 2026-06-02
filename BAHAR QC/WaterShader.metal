@@ -42,18 +42,19 @@ static float valueNoise(float2 p) {
 
 // Three-octave FBM in world-meter UV. Each octave drifts in a rotated
 // direction so the surface has natural, non-uniform structure: large slow
-// swells with finer chop riding on top. Lower base frequency = bigger
-// waves; slower time multipliers = longer-feeling ripples.
+// swells with finer chop riding on top. Base frequency chosen so multiple
+// ripple bands are visible within the on-screen water area at typical
+// viewing distances.
 static float ripples(float2 uv, float t) {
     const float2x2 rot = float2x2( 0.80, -0.60,
                                    0.60,  0.80);
     float2 dir = float2(1.0, 0.6);
     float sum = 0.0;
     float amp = 0.55;
-    float freq = 0.45;
+    float freq = 0.80;
     float norm = 0.0;
     for (int i = 0; i < 3; i++) {
-        sum  += amp * valueNoise(uv * freq + dir * (t * (0.15 + 0.06 * float(i))));
+        sum  += amp * valueNoise(uv * freq + dir * (t * (0.20 + 0.08 * float(i))));
         norm += amp;
         freq *= 2.35;
         amp  *= 0.55;
