@@ -188,10 +188,12 @@ void waterSurface(realitykit::surface_parameters params)
     half3 brightened = clamp(refraction + waterTint * half(0.10), half3(0.0), half3(1.0));
     half3 tintedRefraction = mix(refraction, brightened, half(0.30));
 
-    // Reflection dominates the look — high floor (+0.50) so the water reads
-    // as mirror-like across the entire surface, and full Fresnel weight at
-    // glancing angles pushes nearly pure reflection at the horizon.
-    half reflectStrength = half(saturate(fresnel * 1.00 + 0.50));
+    // Fresnel-driven reflection: looking down at the water shows the warped
+    // refraction (= heavy distortion of submerged content), looking flat at
+    // the horizon shows near-pure mirror reflection. Tiny +0.05 floor keeps
+    // a hint of sky reflection even straight-down so the surface still reads
+    // as water rather than a hole.
+    half reflectStrength = half(saturate(fresnel * 1.00 + 0.05));
     half3 finalColor = mix(tintedRefraction, reflection, reflectStrength);
 
     // Subtle sky sparkle.
