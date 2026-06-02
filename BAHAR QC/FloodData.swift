@@ -139,14 +139,14 @@ actor FloodData {
 
 // MARK: - Tilequery response decoding
 
-private struct TilequeryResponse: Decodable {
+nonisolated private struct TilequeryResponse: Decodable {
     let features: [Feature]
 
-    struct Feature: Decodable {
+    nonisolated struct Feature: Decodable {
         let properties: Properties
     }
 
-    struct Properties: Decodable {
+    nonisolated struct Properties: Decodable {
         /// The tileset stores depth-in-metres under the property name `Var`.
         /// Some tilesets emit it as a JSON number, others as a string —
         /// accept both rather than fail.
