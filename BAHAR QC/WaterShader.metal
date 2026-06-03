@@ -115,11 +115,13 @@ void waterSurface(realitykit::surface_parameters params)
 
     // Always-on directional flow added to the gradient — FBM noise has natural
     // dead zones at its peaks/troughs (gradient ≈ 0), which show up as flat,
-    // undistorted patches. Strong baseline so every pixel rides obvious waves.
+    // undistorted patches. Kept modest so we leave UV headroom for the
+    // heavy refraction/reflection warp coefficients below — going higher
+    // pushes sample UVs off-screen and they clamp to edge pixels.
     float2 flowA = float2( sin(time * 0.55 + ruv.y * 0.7),
-                           cos(time * 0.40 + ruv.x * 0.5) ) * 0.60;
+                           cos(time * 0.40 + ruv.x * 0.5) ) * 0.40;
     float2 flowB = float2( cos(time * 0.30 + ruv.x * 1.1),
-                           sin(time * 0.45 + ruv.y * 0.9) ) * 0.45;
+                           sin(time * 0.45 + ruv.y * 0.9) ) * 0.30;
     dHdx += flowA.x + flowB.x;
     dHdz += flowA.y + flowB.y;
 
