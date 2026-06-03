@@ -115,12 +115,11 @@ void waterSurface(realitykit::surface_parameters params)
 
     // Always-on directional flow added to the gradient — FBM noise has natural
     // dead zones at its peaks/troughs (gradient ≈ 0), which show up as flat,
-    // undistorted patches. This baseline gives every screen pixel a non-zero
-    // gradient so distortion stays consistent across the whole surface.
+    // undistorted patches. Strong baseline so every pixel rides obvious waves.
     float2 flowA = float2( sin(time * 0.55 + ruv.y * 0.7),
-                           cos(time * 0.40 + ruv.x * 0.5) ) * 0.55;
+                           cos(time * 0.40 + ruv.x * 0.5) ) * 0.80;
     float2 flowB = float2( cos(time * 0.30 + ruv.x * 1.1),
-                           sin(time * 0.45 + ruv.y * 0.9) ) * 0.40;
+                           sin(time * 0.45 + ruv.y * 0.9) ) * 0.60;
     dHdx += flowA.x + flowB.x;
     dHdz += flowA.y + flowB.y;
 
@@ -128,7 +127,7 @@ void waterSurface(realitykit::surface_parameters params)
     // (matches the reference). The refraction/reflection UV warp below uses
     // these gradients directly, so this dial controls "how wavy" the water
     // reads to the eye.
-    const float bumpStrength = 0.45;
+    const float bumpStrength = 0.65;
     float3 rippleNormal = normalize(float3(-dHdx * bumpStrength,
                                             1.0,
                                            -dHdz * bumpStrength));
