@@ -115,15 +115,24 @@ void waterSurface(realitykit::surface_parameters params)
 
     // Always-on directional flow added to the gradient — FBM noise has natural
     // dead zones at its peaks/troughs (gradient ≈ 0), which show up as flat,
-    // undistorted patches. Kept modest so we leave UV headroom for the
-    // heavy refraction/reflection warp coefficients below — going higher
-    // pushes sample UVs off-screen and they clamp to edge pixels.
+    // undistorted patches.
     float2 flowA = float2( sin(time * 0.55 + ruv.y * 0.7),
-                           cos(time * 0.40 + ruv.x * 0.5) ) * 0.40;
+                           cos(time * 0.40 + ruv.x * 0.5) ) * 0.55;
     float2 flowB = float2( cos(time * 0.30 + ruv.x * 1.1),
-                           sin(time * 0.45 + ruv.y * 0.9) ) * 0.30;
+                           sin(time * 0.45 + ruv.y * 0.9) ) * 0.40;
     dHdx += flowA.x + flowB.x;
     dHdz += flowA.y + flowB.y;
+
+    // Clamp gradient magnitude so we predictably stay inside the UV range
+    // even with very aggressive warp coefficients — past about 0.45 the
+    // refraction sample hits the screen edge and stops looking distorted.
+    float gradLen = length(float2(dHdx, dHdz));
+    const float gradLimit = 1.6;
+    if (gradLen > gradLimit) {
+        float s = gradLimit / gradLen;
+        dHdx *= s;
+        dHdz *= s;
+    }
 
     // Heavy bump — used for the lighting normal. Refraction/reflection UV
     // warps below use dHdx/dHdz directly (bump strength not applied), so
