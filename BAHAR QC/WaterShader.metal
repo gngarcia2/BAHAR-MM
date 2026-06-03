@@ -265,8 +265,8 @@ void waterSurface(realitykit::surface_parameters params)
     params.surface().set_normal(rippleNormal);
     params.surface().set_roughness(half(0.03));
     params.surface().set_metallic(half(0.0));
-    // Even more transparent — the underwater scene + the refraction warp +
-    // the slight blue tint together still read as water, but more of the
-    // unwarped background bleeds through for an airier, cleaner feel.
-    params.surface().set_opacity(half(0.48) * half(edgeAlpha));
+    // A touch less transparent so the blue tint reads as blue water rather
+    // than grey haze. Submerged content still shows through via the warped
+    // refraction sample beneath the tint.
+    params.surface().set_opacity(half(0.62) * half(edgeAlpha));
 }
