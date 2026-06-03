@@ -109,9 +109,10 @@ void waterGeometry(realitykit::geometry_parameters params)
     // Plane lies in XZ; use that as the noise UV (in metres).
     const float2 uv = modelPos.xz;
     const float  h  = ripples(uv, time);
-    // Centre on zero and apply amplitude. 8 cm peak-to-peak waves read
-    // clearly at typical AR viewing distances without breaking immersion.
-    const float amplitude = 0.08;
+    // Big amplitude so the waterline visibly bobs up and down across objects
+    // even at shallow flood depths. Peak-to-peak ~50 cm — dramatic but reads
+    // as wavy water rather than a stormy ocean.
+    const float amplitude = 0.25;
     const float offset    = (h - 0.5) * 2.0 * amplitude;
     params.geometry().set_model_position_offset(float3(0.0, offset, 0.0));
 }
