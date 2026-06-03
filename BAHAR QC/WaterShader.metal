@@ -94,6 +94,28 @@ kernel void cameraYCbCrToRGB(
     outTex.write(ycbcrToRGB * float4(y, cbcr, 1.0), gid);
 }
 
+// MARK: - Water vertex displacement (geometry modifier)
+//
+// Pushes the plane vertices up/down by the ripple height field. The plane
+// mesh must be subdivided (many vertices) for this to produce visible waves;
+// the default `MeshResource.generatePlane` quad only has 4 corner vertices
+// and won't show ripples. See ARContainerView.makeSubdividedPlane().
+
+[[visible]]
+void waterGeometry(realitykit::geometry_parameters params)
+{
+    const float  time     = params.uniforms().time();
+    const float3 modelPos = params.geometry().model_position();
+    // Plane lies in XZ; use that as the noise UV (in metres).
+    const float2 uv = modelPos.xz;
+    const float  h  = ripples(uv, time);
+    // Centre on zero and apply amplitude. 8 cm peak-to-peak waves read
+    // clearly at typical AR viewing distances without breaking immersion.
+    const float amplitude = 0.08;
+    const float offset    = (h - 0.5) * 2.0 * amplitude;
+    params.geometry().set_model_position_offset(float3(0.0, offset, 0.0));
+}
+
 // MARK: - Water surface shader
 
 [[visible]]
