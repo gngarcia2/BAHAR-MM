@@ -109,10 +109,12 @@ void waterGeometry(realitykit::geometry_parameters params)
     // Plane lies in XZ; use that as the noise UV (in metres).
     const float2 uv = modelPos.xz;
     const float  h  = ripples(uv, time);
-    // Big amplitude so the waterline visibly bobs up and down across objects
-    // even at shallow flood depths. Peak-to-peak ~50 cm — dramatic but reads
-    // as wavy water rather than a stormy ocean.
-    const float amplitude = 0.25;
+    // Wave amplitude scales with flood depth (passed in custom_parameter.x
+    // from ARContainerView.applyDepth). Shallow PATV/gutter water gets small
+    // waves; deeper waist/chest water gets bigger ones. Cap so very deep
+    // floods don't become stormy oceans.
+    const float depth     = params.uniforms().custom_parameter().x;
+    const float amplitude = clamp(depth * 0.30, 0.01, 0.25);
     const float offset    = (h - 0.5) * 2.0 * amplitude;
     params.geometry().set_model_position_offset(float3(0.0, offset, 0.0));
 }
