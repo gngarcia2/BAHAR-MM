@@ -177,16 +177,27 @@ struct ARContainerView: UIViewRepresentable {
                 groundIsEstimate = true
             }
 
-            // Safety clamp: the ground anchor must never sit too close to (or
-            // above) the camera. If ARKit picked a chair seat / desk as the
-            // "floor" earlier, this pulls the anchor back down to a sensible
-            // level so the water film stays near the actual ground.
-            if case .normal = frame.camera.trackingState, let current = groundY {
+            // Track lowest camera Y ever observed — this is our most reliable
+            // floor reference. As the user moves the phone around, the
+            // minimum approaches floor level (phone held low / near floor).
+            if case .normal = frame.camera.trackingState {
                 let cameraY = frame.camera.transform.columns.3.y
-                let maxFloorY = cameraY - 0.8   // water must be ≥80 cm below camera
-                if current > maxFloorY {
-                    groundY = maxFloorY
-                    waterAnchor?.transform.translation = [0, maxFloorY, 0]
+                let newLowest: Float
+                if let prev = lowestCameraY {
+                    newLowest = min(prev, cameraY)
+                } else {
+                    newLowest = cameraY
+                }
+                lowestCameraY = newLowest
+                // Estimated floor = lowest camera position seen, minus a tiny
+                // gap (phones aren't usually held *at* the floor).
+                let cameraEstFloor = newLowest - 0.05
+                // If the current ground anchor is HIGHER than this estimate,
+                // pull it down. This guarantees the water can never sit above
+                // the lowest spot the phone has been.
+                if let current = groundY, current > cameraEstFloor {
+                    groundY = cameraEstFloor
+                    waterAnchor?.transform.translation = [0, cameraEstFloor, 0]
                     groundIsEstimate = true
                 }
             }
