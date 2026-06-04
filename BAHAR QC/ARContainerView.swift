@@ -140,8 +140,19 @@ struct ARContainerView: UIViewRepresentable {
 
         private func applyDepth() {
             guard let entity = waterEntity else { return }
-            let height = max(Float(currentDepth), 0.001)
+            let depthF = Float(currentDepth)
+            let height = max(depthF, 0.001)
             entity.transform.translation = [0, height, 0]
+
+            // Push the depth into the water material's custom parameter so
+            // the geometry-modifier shader can scale wave amplitude to it —
+            // shallow PATV water gets small waves, deep water gets bigger.
+            if var materials = entity.model?.materials,
+               var material = materials.first as? CustomMaterial {
+                material.custom.value = SIMD4<Float>(depthF, 0, 0, 0)
+                materials[0] = material
+                entity.model?.materials = materials
+            }
         }
 
         // MARK: ARSessionDelegate (per-frame)
