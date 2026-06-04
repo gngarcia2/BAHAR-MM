@@ -141,13 +141,10 @@ struct ARContainerView: UIViewRepresentable {
         private func applyDepth() {
             guard let entity = waterEntity else { return }
             let depthF = Float(currentDepth)
-            // Visual height is heavily compressed — Mapbox's PATV "gutter
-            // deep" can read up to 0.25 m, but a real gutter is only a few
-            // centimetres. Quarter the displayed height so the AR water film
-            // surrounds objects at ankle level rather than rising up onto
-            // chair seats and cabinets. The accurate depth value still drives
-            // the gauge text, category colour, and wave amplitude.
-            let visualHeight = max(depthF * 0.25, 0.001)
+            // DEBUG: hardcoded 5cm to verify deploy. Revert to depthF * 0.25
+            // once we confirm changes are reaching the phone.
+            let visualHeight: Float = 0.05
+            _ = depthF
             entity.transform.translation = [0, visualHeight, 0]
 
             // Push the depth into the water material's custom parameter so
