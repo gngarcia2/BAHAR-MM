@@ -172,6 +172,20 @@ struct ARContainerView: UIViewRepresentable {
                 groundIsEstimate = true
             }
 
+            // Safety clamp: the ground anchor must never sit too close to (or
+            // above) the camera. If ARKit picked a chair seat / desk as the
+            // "floor" earlier, this pulls the anchor back down to a sensible
+            // level so the water film stays near the actual ground.
+            if case .normal = frame.camera.trackingState, let current = groundY {
+                let cameraY = frame.camera.transform.columns.3.y
+                let maxFloorY = cameraY - 0.8   // water must be ≥80 cm below camera
+                if current > maxFloorY {
+                    groundY = maxFloorY
+                    waterAnchor?.transform.translation = [0, maxFloorY, 0]
+                    groundIsEstimate = true
+                }
+            }
+
             // Underwater detection. Compare camera world Y to water surface Y.
             if let groundY {
                 let waterY = groundY + Float(currentDepth)
