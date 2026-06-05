@@ -242,7 +242,7 @@ private struct ARSessionView: View {
                     .padding(.bottom, 24)
             }
 
-            // Exit button overlaid in top-right.
+            // Exit (top-right) + Snapshot (bottom-right) controls.
             VStack {
                 HStack {
                     Spacer()
@@ -260,8 +260,30 @@ private struct ARSessionView: View {
                     }
                 }
                 Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: takeSnapshot) {
+                        Image(systemName: "camera.fill")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 56, height: 56)
+                            .glassCard(cornerRadius: 28)
+                    }
+                    .accessibilityLabel("Take AR snapshot")
+                }
             }
             .padding()
+
+            // Flash overlay — fades out after each capture.
+            Color.white
+                .ignoresSafeArea()
+                .opacity(flashOpacity)
+                .allowsHitTesting(false)
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            if let img = snapshotImage {
+                ShareSheet(items: [img])
+            }
         }
         .task {
             location.start()
