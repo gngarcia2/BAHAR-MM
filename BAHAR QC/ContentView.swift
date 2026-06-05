@@ -88,7 +88,7 @@ private struct LandingView: View {
             .buttonStyle(.borderedProminent)
             .padding(.horizontal)
 
-            Text("Prototype — readings are optimized for outdoor ground-level areas.")
+            Text("Prototype — designed for outdoor, ground-level use. Geolocation accuracy may vary depending on GPS signal and device.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
