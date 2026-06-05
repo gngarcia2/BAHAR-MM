@@ -261,13 +261,13 @@ void waterSurface(realitykit::surface_parameters params)
     // on bright camera content (white walls etc.), so we LERP both refraction
     // and reflection toward the tint colour — that way bright pixels come
     // through as pale blue rather than white, and dark pixels as deep blue.
-    // Desaturated cool grey-blue — matches the reference where water reads
-    // as nearly colorless clear liquid taking on a faint cool cast. The
-    // camera content (refraction + reflection) should dominate; the tint
-    // is just a soft body colour, not a strong wash.
-    half3 waterTint = half3(0.55, 0.66, 0.74);
-    half3 tintedRefraction = mix(refraction, waterTint, half(0.22));
-    half3 tintedReflection = mix(reflection, waterTint, half(0.12));
+    // Bright cyan-blue body colour. The previous neutral grey-blue ended up
+    // reading dark because the reflection sample often picks up dark floor
+    // pixels (mirrored upward) — lifting the tint into a luminous blue keeps
+    // the water reading as water rather than a dim mirror.
+    half3 waterTint = half3(0.38, 0.70, 0.92);
+    half3 tintedRefraction = mix(refraction, waterTint, half(0.42));
+    half3 tintedReflection = mix(reflection, waterTint, half(0.32));
 
     // Reflection bias matched to the reference — even at near-vertical view
     // angles the water shows clear mirrored content (room/sky), and grazing
