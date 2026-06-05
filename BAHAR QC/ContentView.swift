@@ -214,6 +214,9 @@ private struct ARSessionView: View {
     @State private var thumbnailVisible = false
     @State private var thumbnailDragOffset: CGFloat = 0
 
+    // Guidelines / hotlines expansion state.
+    @State private var showHotlines = false
+
     var body: some View {
         ZStack {
             ARContainerView(
