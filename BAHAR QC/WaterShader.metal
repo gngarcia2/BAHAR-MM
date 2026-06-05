@@ -234,8 +234,13 @@ void waterSurface(realitykit::surface_parameters params)
     // (the guy's torso reflected onto the water is wavy, not crisp mirror).
     // Still lighter than refraction warp so it reads as reflection rather
     // than chaos.
-    float2 reflectUv = float2(screenUv.x, 1.0 - screenUv.y);
-    reflectUv += float2(dHdx * 0.10, dHdz * 0.12);
+    // Heavy reflection warp using the same multi-scale wobble as refraction —
+    // the mirrored content should clearly distort along with the ripples, not
+    // sit as a crisp pristine mirror.
+    float2 reflectWarp = float2(dHdx, dHdz) * 0.230
+                       + float2(dMdx, dMdz) * 0.140
+                       + float2(dFdx, dFdz) * 0.070;
+    float2 reflectUv = float2(screenUv.x, 1.0 - screenUv.y) + reflectWarp;
     reflectUv = clamp(reflectUv, 0.001, 0.999);
     half3 reflection = half3(params.textures().custom().sample(camSampler, reflectUv).rgb);
 
