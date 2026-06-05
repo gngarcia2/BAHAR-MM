@@ -66,9 +66,9 @@ private struct LandingView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Quezon City · 100-Year Flood")
+                Text("Metro Manila's First AR Flood App")
                     .font(.headline)
-                Text("Point your camera at the ground to see flood depth at your current location, from Project NOAH's 100-year return period model.")
+                Text("Powered by UP NOAH's 100-year flood return model. Point your camera at the ground to see the expected flood depth at your current location.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
