@@ -63,16 +63,20 @@ static float ripples(float2 uv, float t) {
     }
     float fbm = sum / norm;
 
-    // Cross-directional swells — guarantee a non-zero wave component at every
-    // point. Two orthogonal directions with slightly different frequencies and
-    // phase speeds so they beat against each other instead of locking into a
-    // fixed pattern. Mapped to 0..1 so they sum coherently with the FBM.
-    float swell1 = sin(uv.x * 0.85 + uv.y * 0.35 + t * 0.55) * 0.5 + 0.5;
-    float swell2 = sin(uv.x * 0.30 - uv.y * 0.90 + t * 0.40) * 0.5 + 0.5;
-    float swells = (swell1 + swell2) * 0.5;
+    // Four overlapping big-wave systems coming from different directions and
+    // running at slightly different frequencies + phase speeds. With four
+    // angles the surface always has multiple visible swells crossing each
+    // other instead of one dominant direction. Each maps to 0..1 so they
+    // sum coherently with the FBM.
+    float swell1 = sin(uv.x *  0.85 + uv.y *  0.35 + t * 0.55) * 0.5 + 0.5;
+    float swell2 = sin(uv.x *  0.30 - uv.y *  0.90 + t * 0.40) * 0.5 + 0.5;
+    float swell3 = sin(uv.x * -0.65 + uv.y *  0.55 + t * 0.48) * 0.5 + 0.5;
+    float swell4 = sin(uv.x *  0.45 + uv.y * -0.75 + t * 0.62) * 0.5 + 0.5;
+    float swells = (swell1 + swell2 + swell3 + swell4) * 0.25;
 
-    // 65% FBM (chaotic structure) + 35% swells (universal coverage).
-    return fbm * 0.65 + swells * 0.35;
+    // 45% FBM (chaotic structure) + 55% swells — big-wave systems now
+    // dominate the surface, with the FBM providing irregular detail on top.
+    return fbm * 0.45 + swells * 0.55;
 }
 
 // MARK: - YpCbCr → RGB compute kernel
