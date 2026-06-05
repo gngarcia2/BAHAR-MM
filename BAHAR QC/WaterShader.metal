@@ -40,25 +40,24 @@ static float valueNoise(float2 p) {
     return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
-// Four-octave FBM in world-meter UV. Each octave drifts in a rotated
-// direction so the surface has natural, non-uniform structure: large slow
-// swells with finer chop riding on top, plus a high-frequency micro-ripple
-// layer for dense surface texture. Base frequency is tuned so multiple
-// ripple bands are visible within the on-screen water area at typical
-// viewing distances.
+// Three-octave FBM in world-meter UV — tuned for natural-looking, longer
+// wavelengths rather than tight chop. Low base frequency (0.55) gives big
+// slow swells; each successive octave layers finer ripples on top without
+// drowning the surface in micro-detail. Each octave drifts in a rotated
+// direction so the surface has non-uniform structure.
 static float ripples(float2 uv, float t) {
     const float2x2 rot = float2x2( 0.80, -0.60,
                                    0.60,  0.80);
     float2 dir = float2(1.0, 0.6);
     float sum = 0.0;
     float amp = 0.55;
-    float freq = 1.20;
+    float freq = 0.55;
     float norm = 0.0;
-    for (int i = 0; i < 4; i++) {
-        sum  += amp * valueNoise(uv * freq + dir * (t * (0.24 + 0.10 * float(i))));
+    for (int i = 0; i < 3; i++) {
+        sum  += amp * valueNoise(uv * freq + dir * (t * (0.18 + 0.08 * float(i))));
         norm += amp;
-        freq *= 2.20;
-        amp  *= 0.58;
+        freq *= 2.30;
+        amp  *= 0.55;
         dir   = rot * dir;
     }
     return sum / norm;
