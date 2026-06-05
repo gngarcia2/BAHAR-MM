@@ -375,29 +375,38 @@ private struct ARSessionView: View {
                             .padding(4)
                     }
             }
-            .offset(x: thumbnailDragOffset)
-            .opacity(1.0 - min(Double(abs(thumbnailDragOffset)) / 120.0, 0.9))
+            .offset(x: thumbnailDragOffset.width, y: max(thumbnailDragOffset.height, 0))
+            .opacity(1.0 - min(Double(hypot(thumbnailDragOffset.width, max(thumbnailDragOffset.height, 0))) / 150.0, 0.9))
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        // Only allow swipe to the left (negative X). Resist right.
-                        thumbnailDragOffset = min(value.translation.width, 0)
+                        // Allow swiping left (off-screen) or downward (toss away).
+                        // Resist upward and rightward motion so the gesture feels
+                        // like a real toss rather than free-floating drag.
+                        thumbnailDragOffset = CGSize(
+                            width: min(value.translation.width, 0),
+                            height: max(value.translation.height, 0)
+                        )
                     }
                     .onEnded { value in
-                        if value.translation.width < -60 {
-                            // Swiped far enough — dismiss.
+                        let dx = value.translation.width
+                        let dy = value.translation.height
+                        // Dismiss when flung left, down, or any combo of them.
+                        if dx < -60 || dy > 60 || hypot(dx, dy) > 80 {
                             withAnimation(.easeOut(duration: 0.25)) {
-                                thumbnailDragOffset = -200
+                                thumbnailDragOffset = CGSize(
+                                    width: dx < 0 ? -240 : 0,
+                                    height: dy > 0 ? 240 : 0
+                                )
                                 thumbnailVisible = false
                             }
                             // Reset for next snapshot.
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                thumbnailDragOffset = 0
+                                thumbnailDragOffset = .zero
                             }
                         } else {
-                            // Snap back.
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                thumbnailDragOffset = 0
+                                thumbnailDragOffset = .zero
                             }
                         }
                     }
