@@ -324,25 +324,28 @@ private struct ARSessionView: View {
         .glassCard()
     }
 
-    /// Dynamic safety guidance — text changes with the active flood category.
+    /// Compact Dual-Advisory box — category icon + concise safety guidance.
+    /// Kept narrow vertically so it doesn't eat into the AR viewport.
     private var guidelinesCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Image(systemName: guidelinesIcon)
-                    .foregroundStyle(MMDATheme.color(for: gauge.category))
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: guidelinesIcon)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(MMDATheme.color(for: gauge.category))
+                .frame(width: 22)
+            VStack(alignment: .leading, spacing: 2) {
                 Text("Guidelines & Emergency Hotlines")
-                    .font(.footnote.weight(.bold))
-                    .tracking(0.5)
+                    .font(.caption2.weight(.bold))
+                    .tracking(0.6)
+                    .foregroundStyle(.white.opacity(0.70))
+                Text(guidelinesText)
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text(guidelinesText)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .glassCard()
     }
 
