@@ -506,6 +506,33 @@ private struct ARSessionView: View {
             gauge = g
         }
     }
+
+    // MARK: - AR Snapshot
+
+    /// Captures the live AR frame + HUD overlay, plays a camera-flash effect,
+    /// and presents a share sheet so the user can save to Photos or share.
+    private func takeSnapshot() {
+        // Capture FIRST so the flash overlay isn't included in the image.
+        let image = captureKeyWindow()
+
+        // Quick white flash for capture feedback.
+        flashOpacity = 0.9
+        withAnimation(.easeOut(duration: 0.35)) {
+            flashOpacity = 0
+        }
+
+        // Tiny haptic to confirm.
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        if let image {
+            snapshotImage = image
+            // Slight delay so the flash visibly fades before the sheet appears.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
+                showingShareSheet = true
+            }
+        }
+    }
 }
 #endif
 
