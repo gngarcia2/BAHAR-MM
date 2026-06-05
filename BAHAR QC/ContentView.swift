@@ -131,8 +131,12 @@ private struct LandingView: View {
                 .frame(maxWidth: 220, maxHeight: 80)
 
             VStack(spacing: 6) {
-                Text("BAHAR")
+                // "BahAR" stylized: "Bah" lowercase, "AR" uppercase to
+                // emphasize the Augmented Reality side of the brand.
+                (Text("Bah")
                     .font(.system(size: 56, weight: .heavy, design: .rounded))
+                 + Text("AR")
+                    .font(.system(size: 56, weight: .heavy, design: .rounded)))
                     .tracking(2)
                 Text("Baha Augmented Reality")
                     .font(.system(size: 14, weight: .medium))
