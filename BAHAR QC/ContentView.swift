@@ -525,7 +525,7 @@ private struct ARSessionView: View {
                 .glassCard()
                 // Float the card above the button — leaves the bottom row
                 // (warning + camera) symmetric and unchanged.
-                .offset(y: -56)
+                .offset(y: -68)
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
