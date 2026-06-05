@@ -502,8 +502,8 @@ private struct ARSessionView: View {
             Image(systemName: guidelinesIcon)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(MMDATheme.color(for: gauge.category))
-                .frame(width: 44, height: 44)
-                .glassCard(cornerRadius: 22)
+                .frame(width: 56, height: 56)
+                .glassCard(cornerRadius: 28)
         }
         .accessibilityLabel(showHotlines ? "Hide flood advisory" : "Show flood advisory")
         .overlay(alignment: .bottomLeading) {
