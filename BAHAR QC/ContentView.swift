@@ -132,7 +132,7 @@ private struct LandingView: View {
             Spacer()
 
             noahLogo
-                .frame(maxWidth: 220, maxHeight: 80)
+                .frame(maxWidth: 140, maxHeight: 50)
 
             VStack(spacing: 6) {
                 // "BahAR" stylized: "Bah" lowercase, "AR" uppercase to
