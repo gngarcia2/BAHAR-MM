@@ -214,12 +214,12 @@ void waterSurface(realitykit::surface_parameters params)
     float dFdx = (fX1 - fX0) / (2.0 * chopEps);
     float dFdz = (fZ1 - fZ0) / (2.0 * chopEps);
 
-    float2 mainWarp = float2(dHdx, dHdz) * 0.260;
-    float2 midWarp  = float2(dMdx, dMdz) * 0.180;
-    float2 fineWarp = float2(dFdx, dFdz) * 0.090;
+    float2 mainWarp = float2(dHdx, dHdz) * 0.320;
+    float2 midWarp  = float2(dMdx, dMdz) * 0.220;
+    float2 fineWarp = float2(dFdx, dFdz) * 0.115;
     float2 totalWarp = mainWarp + midWarp + fineWarp;
     float2 refractBase = screenUv + totalWarp;
-    float2 ca = totalWarp * 0.08;
+    float2 ca = totalWarp * 0.11;
     float2 uvR = clamp(refractBase + ca, 0.001, 0.999);
     float2 uvG = clamp(refractBase,      0.001, 0.999);
     float2 uvB = clamp(refractBase - ca, 0.001, 0.999);
