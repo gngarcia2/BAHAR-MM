@@ -558,7 +558,9 @@ private struct ARSessionView: View {
     // MARK: - AR Snapshot
 
     /// Captures the live AR frame + HUD overlay, plays a camera-flash effect,
-    /// and presents a share sheet so the user can save to Photos or share.
+    /// and slides in an iOS-screenshot-style thumbnail at the bottom-left.
+    /// Tapping the thumbnail opens the share sheet (which includes Save Image).
+    /// Thumbnail auto-dismisses after a few seconds.
     private func takeSnapshot() {
         // Capture FIRST so the flash overlay isn't included in the image.
         let image = captureKeyWindow()
@@ -573,11 +575,17 @@ private struct ARSessionView: View {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
-        if let image {
-            snapshotImage = image
-            // Slight delay so the flash visibly fades before the sheet appears.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
-                showingShareSheet = true
+        guard let image else { return }
+        snapshotImage = image
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+            thumbnailVisible = true
+        }
+        // Auto-dismiss after 5 seconds unless the user tapped to share.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            // Don't yank the thumbnail out from under an active share sheet.
+            guard !showingShareSheet else { return }
+            withAnimation(.easeOut(duration: 0.4)) {
+                thumbnailVisible = false
             }
         }
     }
