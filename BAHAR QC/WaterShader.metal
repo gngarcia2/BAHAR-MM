@@ -155,7 +155,7 @@ void waterGeometry(realitykit::geometry_parameters params)
     // Offset is also biased DOWN (-0.75) so the wave peaks stay close to the
     // actual flood level rather than poking visibly above it.
     const float depth     = params.uniforms().custom_parameter().x;
-    const float amplitude = clamp(depth * 0.24, 0.010, 0.34);
+    const float amplitude = clamp(depth * 0.30, 0.014, 0.42);
     const float offset    = (h - 0.75) * 2.0 * amplitude;
     params.geometry().set_model_position_offset(float3(0.0, offset, 0.0));
 }
