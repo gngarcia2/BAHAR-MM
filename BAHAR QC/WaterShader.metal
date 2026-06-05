@@ -90,10 +90,16 @@ static float ripples(float2 uv, float t) {
     float shimmerD = sin((uv.x + uv.y) * 2.80 + t * 1.70);
     float shimmer  = (shimmerX * shimmerY + shimmerD * 0.6) * 0.25 + 0.5;
 
-    // 28% FBM + 34% big swells + 22% medium chop + 16% high shimmer.
-    // Four independent wave systems each contribute — no point on the
-    // surface lacks gradient at every scale.
-    return fbm * 0.28 + bigSwells * 0.34 + midChop * 0.22 + shimmer * 0.16;
+    // Layered sum with weights intentionally summing > 1.0 — the previous
+    // normalized blend (weights summing to 1) compressed each layer's
+    // contribution and made the surface look smoother than the sum of its
+    // parts. Letting weights exceed 1 keeps each individual wave system
+    // visible without dropping back to flat patches.
+    float h = fbm * 0.55 + bigSwells * 0.55 + midChop * 0.35 + shimmer * 0.22;
+    // Soft-clamp into a usable range — sin layers can occasionally overlap
+    // their peaks and push past 1.0; saturate keeps the geometry offset
+    // bounded without flattening the dynamic range.
+    return saturate(h);
 }
 
 // MARK: - YpCbCr → RGB compute kernel
