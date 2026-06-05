@@ -53,20 +53,23 @@ private enum MMDATheme {
     }
 }
 
-/// A frosted-glass card style — slate-900 base, blur, hairline border.
+/// True clear-glass card — bg-white/5 + heavy backdrop blur + white/10 border +
+/// soft drop shadow. Lets the live AR feed and water visualization show
+/// through clearly while keeping text legible.
 private struct GlassCard: ViewModifier {
     var cornerRadius: CGFloat = 16
     func body(content: Content) -> some View {
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color(red: 15/255, green: 23/255, blue: 42/255).opacity(0.78)) // slate-900/78
+                    .fill(Color.white.opacity(0.05))
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .stroke(Color.white.opacity(0.10), lineWidth: 1)
             )
+            .shadow(color: Color.black.opacity(0.30), radius: 16, x: 0, y: 8)
     }
 }
 
