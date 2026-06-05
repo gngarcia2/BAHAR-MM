@@ -119,6 +119,10 @@ private struct LandingView: View {
             Image(uiImage: uiImage)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
+                // Soft white glow so the black strokes don't get lost on dark
+                // backgrounds. Matches the in-AR overlay treatment.
+                .shadow(color: .white.opacity(0.55), radius: 6, x: 0, y: 0)
+                .shadow(color: .white.opacity(0.40), radius: 12, x: 0, y: 0)
         }
         #endif
     }
