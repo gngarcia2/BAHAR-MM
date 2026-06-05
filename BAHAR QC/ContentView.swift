@@ -375,22 +375,35 @@ private struct ARSessionView: View {
         return Color.green
     }
 
-    /// MMDA-style level label e.g. "GUTTER LEVEL", "KNEE LEVEL".
-    private var activeLevelLabel: String {
+    /// Human-scale flood level label. Same thresholds as MMDA but worded for
+    /// the human body to make the depth instantly relatable.
+    private var humanScaleLabel: String {
         let inches = depth * 39.3700787
         if inches < 10 { return "GUTTER LEVEL" }
         if inches < 13 { return "HALF-KNEE LEVEL" }
-        if inches < 19 { return "HALF-TIRE LEVEL" }
+        if inches < 19 { return "CALF LEVEL" }
         if inches < 26 { return "KNEE LEVEL" }
-        if inches < 37 { return "TIRE LEVEL" }
+        if inches < 37 { return "THIGH LEVEL" }
         if inches < 45 { return "WAIST LEVEL" }
         return "CHEST LEVEL"
     }
 
-    /// Depth in inches, rounded — matches the MMDA reference card markings.
+    /// Body-part emoji that visually corresponds to the depth tier.
+    private var humanScaleEmoji: String {
+        let inches = depth * 39.3700787
+        if inches < 10 { return "🦶" }
+        if inches < 13 { return "🦵" }
+        if inches < 19 { return "🦵" }
+        if inches < 26 { return "🦵" }
+        if inches < 37 { return "🚴" }
+        if inches < 45 { return "🧍" }
+        return "👤"
+    }
+
+    /// Depth in both imperial and metric: e.g. `8" / ~0.20 m`.
     private var depthDisplay: String {
         let inches = Int(depth * 39.3700787 + 0.5)
-        return "\(inches)\""
+        return String(format: "%d\" / ~%.2f m", inches, depth)
     }
 
     private var guidelinesIcon: String {
