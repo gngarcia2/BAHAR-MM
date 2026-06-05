@@ -202,8 +202,9 @@ void waterSurface(realitykit::surface_parameters params)
 
     // Heavy bump — used for the lighting normal. Refraction/reflection UV
     // warps below use dHdx/dHdz directly (bump strength not applied), so
-    // those have their own warp coefficients.
-    const float bumpStrength = 0.55;
+    // those have their own warp coefficients. Higher bump means crests tilt
+    // further from vertical and catch more specular highlight.
+    const float bumpStrength = 0.85;
     float3 rippleNormal = normalize(float3(-dHdx * bumpStrength,
                                             1.0,
                                            -dHdz * bumpStrength));
