@@ -303,7 +303,8 @@ private struct ARSessionView: View {
 
     // MARK: - HUD components
 
-    /// Translucent NOAH logo, top-left. Branding without obscuring the camera.
+    /// Translucent NOAH logo, top-left. Soft white glow keeps the black parts
+    /// of the mark legible against dark backgrounds.
     @ViewBuilder
     private var noahLogoOverlay: some View {
         if let uiImage = UIImage(named: "NOAH LOGO") {
@@ -311,7 +312,11 @@ private struct ARSessionView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: 90, maxHeight: 36)
-                .opacity(0.55)
+                .opacity(0.85)
+                // Multi-pass white glow — outer haze + inner halo. Lifts the
+                // black strokes of the wordmark off dark camera backgrounds.
+                .shadow(color: .white.opacity(0.55), radius: 6, x: 0, y: 0)
+                .shadow(color: .white.opacity(0.40), radius: 12, x: 0, y: 0)
         }
     }
 
