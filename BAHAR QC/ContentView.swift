@@ -192,6 +192,7 @@ private struct ARSessionView: View {
     @State private var flashOpacity: Double = 0
     @State private var snapshotImage: UIImage?
     @State private var showingShareSheet = false
+    @State private var thumbnailVisible = false
 
     var body: some View {
         ZStack {
