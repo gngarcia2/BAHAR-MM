@@ -80,9 +80,20 @@ static float ripples(float2 uv, float t) {
     float chop3 = sin(uv.x *  1.95 - uv.y *  0.80 + t * 1.25) * 0.5 + 0.5;
     float midChop = (chop1 + chop2 + chop3) * (1.0 / 3.0);
 
-    // 35% FBM + 40% big swells + 25% medium chop. The chop layer guarantees
-    // no flat patches anywhere on the surface.
-    return fbm * 0.35 + bigSwells * 0.40 + midChop * 0.25;
+    // High-frequency shimmer — product-of-sines at differing frequencies on
+    // each axis produces a dense bump pattern that varies at every point on
+    // the surface, regardless of how the lower-frequency layers align. This
+    // is what kills the last dead zones where multiple swell crests meet at
+    // a flat plateau.
+    float shimmerX = sin(uv.x * 3.20 + t * 1.50);
+    float shimmerY = sin(uv.y * 3.70 + t * 1.35);
+    float shimmerD = sin((uv.x + uv.y) * 2.80 + t * 1.70);
+    float shimmer  = (shimmerX * shimmerY + shimmerD * 0.6) * 0.25 + 0.5;
+
+    // 28% FBM + 34% big swells + 22% medium chop + 16% high shimmer.
+    // Four independent wave systems each contribute — no point on the
+    // surface lacks gradient at every scale.
+    return fbm * 0.28 + bigSwells * 0.34 + midChop * 0.22 + shimmer * 0.16;
 }
 
 // MARK: - YpCbCr → RGB compute kernel
