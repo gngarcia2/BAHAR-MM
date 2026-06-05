@@ -242,9 +242,10 @@ private struct ARSessionView: View {
                     .padding(.bottom, 24)
             }
 
-            // Exit (top-right) + Snapshot (bottom-right) controls.
+            // Top row: NOAH logo (left, translucent) + Exit (right).
             VStack {
-                HStack {
+                HStack(alignment: .top) {
+                    noahLogoOverlay
                     Spacer()
                     Button(action: onExit) {
                         HStack(spacing: 4) {
@@ -260,7 +261,9 @@ private struct ARSessionView: View {
                     }
                 }
                 Spacer()
-                HStack {
+                // Bottom row: screenshot thumbnail (left) + snapshot button (right).
+                HStack(alignment: .bottom) {
+                    snapshotThumbnail
                     Spacer()
                     Button(action: takeSnapshot) {
                         Image(systemName: "camera.fill")
