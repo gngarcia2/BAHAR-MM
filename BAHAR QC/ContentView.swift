@@ -282,10 +282,19 @@ private struct ARSessionView: View {
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.white.opacity(0.70))
             } else {
-                // PRIMARY — human-scale label with body-part emoji.
+                // PRIMARY — human-scale label with body-part icon. Gutter
+                // tier uses a custom side-view foot asset (Apple's 🦶 renders
+                // as a sole-print). Other tiers use emoji.
                 HStack(alignment: .center, spacing: 10) {
-                    Text(humanScaleEmoji)
-                        .font(.system(size: 38))
+                    if let asset = humanScaleAssetName {
+                        Image(asset)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 42, height: 42)
+                    } else {
+                        Text(humanScaleEmoji)
+                            .font(.system(size: 38))
+                    }
                     Text(humanScaleLabel)
                         .font(.system(size: 26, weight: .heavy, design: .rounded))
                         .tracking(2)
