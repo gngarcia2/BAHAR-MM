@@ -282,9 +282,12 @@ private struct ARSessionView: View {
                     }
                 }
                 Spacer()
-                // Bottom row: screenshot thumbnail (left) + snapshot button (right).
+                // Bottom row: warning button + thumbnail (left) | camera (right).
                 HStack(alignment: .bottom) {
-                    snapshotThumbnail
+                    VStack(alignment: .leading, spacing: 12) {
+                        snapshotThumbnail
+                        guidelinesCard
+                    }
                     Spacer()
                     Button(action: takeSnapshot) {
                         Image(systemName: "camera.fill")
