@@ -264,42 +264,63 @@ private struct ARSessionView: View {
         .foregroundStyle(.white)
     }
 
-    /// Main depth/category readout card. Active level is the largest element.
+    /// Main depth/category readout. Human-scale flood indicator with body-part
+    /// emoji is the largest, highest-contrast element. Vehicle classification
+    /// is a smaller subheading. Numeric depth is a clean monospace accent.
     private var depthCard: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             if gauge.category == .none {
-                Text("NO FLOOD AT THIS LOCATION")
-                    .font(.caption.weight(.bold))
-                    .tracking(1.2)
-                    .foregroundStyle(MMDATheme.color(for: .none))
+                HStack(spacing: 8) {
+                    Text("✅")
+                        .font(.system(size: 28))
+                    Text("NO FLOOD")
+                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                        .tracking(2)
+                        .foregroundStyle(.white)
+                }
+                Text("Safe at this location")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.70))
             } else {
-                Text(gauge.category.abbreviation)
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
-                    .tracking(3)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 6)
-                    .background(MMDATheme.color(for: gauge.category), in: Capsule())
+                // PRIMARY — human-scale label with body-part emoji.
+                HStack(alignment: .center, spacing: 10) {
+                    Text(humanScaleEmoji)
+                        .font(.system(size: 38))
+                    Text(humanScaleLabel)
+                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                        .tracking(2)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
 
-                Text(activeLevelLabel)
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
-                    .tracking(2)
-                    .foregroundStyle(.white)
-
+                // Numeric accent — both imperial and metric, monospace.
                 Text(depthDisplay)
-                    .font(.system(size: 28, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
+                    .font(.system(.subheadline, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.90))
 
-                Text(gauge.category.fullName)
-                    .font(.caption2.weight(.semibold))
-                    .tracking(0.5)
-                    .foregroundStyle(.white.opacity(0.65))
-                    .multilineTextAlignment(.center)
+                // SECONDARY — vehicle classification with category color pill.
+                HStack(spacing: 6) {
+                    Text(gauge.category.abbreviation)
+                        .font(.system(.caption2, design: .rounded).weight(.heavy))
+                        .tracking(1)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(MMDATheme.color(for: gauge.category), in: Capsule())
+                    Text(gauge.category.fullName)
+                        .font(.caption2.weight(.medium))
+                        .tracking(0.3)
+                        .foregroundStyle(.white.opacity(0.75))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                        .multilineTextAlignment(.leading)
+                }
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
         .glassCard()
     }
 
