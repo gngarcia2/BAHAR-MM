@@ -264,31 +264,31 @@ private struct ARSessionView: View {
         .foregroundStyle(.white)
     }
 
-    /// Main depth/category readout. Human-scale flood indicator with body-part
-    /// emoji is the largest, highest-contrast element. Vehicle classification
-    /// is a smaller subheading. Numeric depth is a clean monospace accent.
+    /// Main depth/category readout. Compact layout with the human-scale
+    /// label as the largest element, depth numeric next to it, and a tight
+    /// secondary row underneath for the vehicle-classification pill.
     private var depthCard: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             if gauge.category == .none {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Text("✅")
-                        .font(.system(size: 28))
+                        .font(.system(size: 24))
                     Text("NO FLOOD")
-                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                        .font(.system(size: 22, weight: .heavy, design: .rounded))
                         .tracking(2)
                         .foregroundStyle(.white)
                 }
                 Text("Safe at this location")
-                    .font(.caption.weight(.medium))
+                    .font(.caption2.weight(.medium))
                     .foregroundStyle(.white.opacity(0.70))
             } else {
                 // PRIMARY — human-scale label with body-part emoji.
-                HStack(alignment: .center, spacing: 10) {
+                HStack(alignment: .center, spacing: 8) {
                     Text(humanScaleEmoji)
-                        .font(.system(size: 38))
+                        .font(.system(size: 30))
                     Text(humanScaleLabel)
-                        .font(.system(size: 26, weight: .heavy, design: .rounded))
-                        .tracking(2)
+                        .font(.system(size: 22, weight: .heavy, design: .rounded))
+                        .tracking(1.5)
                         .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -296,8 +296,8 @@ private struct ARSessionView: View {
 
                 // Numeric accent — both imperial and metric, monospace.
                 Text(depthDisplay)
-                    .font(.system(.subheadline, design: .monospaced).weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.90))
+                    .font(.system(.caption, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.85))
 
                 // SECONDARY — vehicle classification with category color pill.
                 HStack(spacing: 6) {
@@ -305,23 +305,24 @@ private struct ARSessionView: View {
                         .font(.system(.caption2, design: .rounded).weight(.heavy))
                         .tracking(1)
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 1)
                         .background(MMDATheme.color(for: gauge.category), in: Capsule())
                     Text(gauge.category.fullName)
-                        .font(.caption2.weight(.medium))
-                        .tracking(0.3)
-                        .foregroundStyle(.white.opacity(0.75))
+                        .font(.system(size: 10, weight: .medium))
+                        .tracking(0.2)
+                        .foregroundStyle(.white.opacity(0.72))
                         .lineLimit(2)
                         .minimumScaleFactor(0.8)
                         .multilineTextAlignment(.leading)
                 }
+                .padding(.top, 1)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 14)
-        .glassCard()
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .glassCard(cornerRadius: 14)
     }
 
     /// Compact Dual-Advisory box — category icon + concise safety guidance.
