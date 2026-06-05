@@ -46,37 +46,43 @@ static float valueNoise(float2 p) {
 // are visible everywhere on the surface, not just in patches. Base FBM
 // frequency (0.55) keeps wavelengths long and natural-looking.
 static float ripples(float2 uv, float t) {
-    // FBM body.
+    // FBM body — four octaves cover wavelengths from large swells down to
+    // medium chop, packing detail across the surface.
     const float2x2 rot = float2x2( 0.80, -0.60,
                                    0.60,  0.80);
     float2 dir = float2(1.0, 0.6);
     float sum = 0.0;
     float amp = 0.55;
-    float freq = 0.55;
+    float freq = 0.70;
     float norm = 0.0;
-    for (int i = 0; i < 3; i++) {
-        sum  += amp * valueNoise(uv * freq + dir * (t * (0.18 + 0.08 * float(i))));
+    for (int i = 0; i < 4; i++) {
+        sum  += amp * valueNoise(uv * freq + dir * (t * (0.20 + 0.09 * float(i))));
         norm += amp;
-        freq *= 2.30;
-        amp  *= 0.55;
+        freq *= 2.25;
+        amp  *= 0.58;
         dir   = rot * dir;
     }
     float fbm = sum / norm;
 
-    // Four overlapping big-wave systems coming from different directions and
-    // running at slightly different frequencies + phase speeds. With four
-    // angles the surface always has multiple visible swells crossing each
-    // other instead of one dominant direction. Each maps to 0..1 so they
-    // sum coherently with the FBM.
+    // Big-wave systems — four overlapping directional swells fill broad
+    // structure across the surface.
     float swell1 = sin(uv.x *  0.85 + uv.y *  0.35 + t * 0.55) * 0.5 + 0.5;
     float swell2 = sin(uv.x *  0.30 - uv.y *  0.90 + t * 0.40) * 0.5 + 0.5;
     float swell3 = sin(uv.x * -0.65 + uv.y *  0.55 + t * 0.48) * 0.5 + 0.5;
     float swell4 = sin(uv.x *  0.45 + uv.y * -0.75 + t * 0.62) * 0.5 + 0.5;
-    float swells = (swell1 + swell2 + swell3 + swell4) * 0.25;
+    float bigSwells = (swell1 + swell2 + swell3 + swell4) * 0.25;
 
-    // 45% FBM (chaotic structure) + 55% swells — big-wave systems now
-    // dominate the surface, with the FBM providing irregular detail on top.
-    return fbm * 0.45 + swells * 0.55;
+    // Medium-frequency chop — fills the empty spaces between big-swell
+    // crests so the surface always has visible wave activity, not flat
+    // patches between widely-spaced swells.
+    float chop1 = sin(uv.x *  1.70 + uv.y *  1.20 + t * 0.95) * 0.5 + 0.5;
+    float chop2 = sin(uv.x * -1.30 + uv.y *  1.85 + t * 1.10) * 0.5 + 0.5;
+    float chop3 = sin(uv.x *  1.95 - uv.y *  0.80 + t * 1.25) * 0.5 + 0.5;
+    float midChop = (chop1 + chop2 + chop3) * (1.0 / 3.0);
+
+    // 35% FBM + 40% big swells + 25% medium chop. The chop layer guarantees
+    // no flat patches anywhere on the surface.
+    return fbm * 0.35 + bigSwells * 0.40 + midChop * 0.25;
 }
 
 // MARK: - YpCbCr → RGB compute kernel
