@@ -7,6 +7,11 @@ expected 100-year-return flood depth at your current GPS location, using the
 UP NOAH flood depth model. Built for UPRI-NOAH as the iOS / on-the-ground
 companion to the [BAHAR-QC](https://github.com/UPRI-NOAH/BAHAR-QC) web map.
 
+> **iOS AR source lives on the [`ios-ar-water-effect`](https://github.com/UPRI-NOAH/BAHAR-QC/tree/ios-ar-water-effect) branch.**
+> The `main` branch holds the Mapbox web map; the AR client (Xcode project,
+> water shader, HUD, snapshot, Tilequery integration) is all on
+> `ios-ar-water-effect`.
+
 ## How it fits with the rest of BAHAR-QC
 
 - **Web side** (BAHAR-QC main repo) — a Mapbox-powered web map of Metro
