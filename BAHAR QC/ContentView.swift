@@ -220,7 +220,10 @@ private struct ARSessionView: View {
     var body: some View {
         ZStack {
             ARContainerView(
-                floodDepth: depth,
+                // Pass 0 when the gauge says no flood — the AR container hides
+                // the water plane on zero so we don't render an invisible-but-
+                // present film over un-flooded locations.
+                floodDepth: gauge.category == .none ? 0 : depth,
                 onGroundFound: { groundFound = true },
                 onSessionError: { msg in arError = msg },
                 onUnderwaterChange: { isUnder in underwater = isUnder }
