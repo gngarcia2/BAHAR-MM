@@ -47,8 +47,17 @@ nonisolated struct MMDAGauge: Equatable, Sendable {
 
     /// Maps a depth in metres to its MMDA gauge classification. Thresholds are
     /// the inch markers from the official system (8, 10, 13, 19, 26, 37, 45).
+    ///
+    /// `noiseFloor` (2 cm ≈ 0.8 in) treats sub-puddle depths as "no flood".
+    /// Mapbox Tilequery sometimes returns a tiny non-zero value from an
+    /// adjacent polygon when the search point is right next to a flooded
+    /// area but not on it (e.g. UP Resilience Institute reading as gutter
+    /// level even though the campus tile itself is "little to none"). Below
+    /// this threshold the depth isn't actionable and should match NOAH's
+    /// "no flood" classification.
     static func from(depthMeters: Double) -> MMDAGauge {
-        guard depthMeters > 0 else { return .none }
+        let noiseFloor = 0.02
+        guard depthMeters > noiseFloor else { return .none }
         let inches = depthMeters * 39.3700787
 
         if inches < 10  { return MMDAGauge(category: .patv,  description: "Gutter deep flood") }
