@@ -48,15 +48,15 @@ nonisolated struct MMDAGauge: Equatable, Sendable {
     /// Maps a depth in metres to its MMDA gauge classification. Thresholds are
     /// the inch markers from the official system (8, 10, 13, 19, 26, 37, 45).
     ///
-    /// `noiseFloor` (2 cm ≈ 0.8 in) treats sub-puddle depths as "no flood".
-    /// Mapbox Tilequery sometimes returns a tiny non-zero value from an
-    /// adjacent polygon when the search point is right next to a flooded
-    /// area but not on it (e.g. UP Resilience Institute reading as gutter
-    /// level even though the campus tile itself is "little to none"). Below
-    /// this threshold the depth isn't actionable and should match NOAH's
-    /// "no flood" classification.
+    /// `noiseFloor` (10 cm ≈ 4 in) matches NOAH Studio's "Little to None"
+    /// classification. The raw tileset reports a fractional `Var` value
+    /// (e.g. 0.07 m at UP Resilience Institute) even at locations NOAH
+    /// Studio displays as un-flooded, because the hazard map's UI tiers
+    /// start at ~0.10 m (Low) and treat anything below as no-hazard.
+    /// We mirror that threshold so the AR reading agrees with what users
+    /// see on the NOAH map.
     static func from(depthMeters: Double) -> MMDAGauge {
-        let noiseFloor = 0.02
+        let noiseFloor = 0.10
         guard depthMeters > noiseFloor else { return .none }
         let inches = depthMeters * 39.3700787
 
