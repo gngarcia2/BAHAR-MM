@@ -594,10 +594,12 @@ private struct ARSessionView: View {
         return "👤"
     }
 
-    /// Depth in both imperial and metric: e.g. `8" / ~0.20 m`.
+    /// Depth in imperial, rounded metric, and the raw live Tilequery value
+    /// (full precision) so we can sanity-check what the Mapbox tileset is
+    /// actually returning at the current location: e.g. `8" / ~0.20 m / 0.2034`.
     private var depthDisplay: String {
         let inches = Int(depth * 39.3700787 + 0.5)
-        return String(format: "%d\" / ~%.2f m", inches, depth)
+        return String(format: "%d\" / ~%.2f m / %.4f", inches, depth, depth)
     }
 
     private var guidelinesIcon: String {
